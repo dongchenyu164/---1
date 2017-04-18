@@ -1,10 +1,12 @@
-﻿#define _K参数_ 13
+﻿#define _K参数_ 4
 #define _世界大小_X_ 20
 #define _世界大小_Y_ 20
-#define _正例个数_ 5
-#define _负例个数_ 5
+#define _正例个数_ 13
+#define _负例个数_ 25
 
 #if _K参数_>(_正例个数_+_负例个数_)
+	#undef _K参数_
+
 	#define _K参数_ _正例个数_+_负例个数_
 #endif
 #if (_正例个数_+_负例个数_)>(_世界大小_X_*_世界大小_Y_)
@@ -12,16 +14,19 @@
 #endif
 
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 
 typedef struct 样本struct 样本struct;
 typedef unsigned int uint;
 
-enum 类型{ 空, 正例, 负例, 正判定, 负判定 };
+enum 类型 { 空 = 0, 正例, 负例, 正判定, 负判定 };
 
 struct 样本struct
 {
 	uint X;
 	uint Y;
+	类型 Type;
 	int Distance;
 };
 
@@ -29,18 +34,29 @@ struct 样本struct
 样本struct 样本[_正例个数_ + _负例个数_];
 int K = _K参数_;
 
+void MakeSimpleData();
 void Display();
+bool 是否重复(uint _X, uint _Y);
 void 生成初始样本();
 void 计算距离(uint _X, uint _Y);
 void 以距离为基准排序();
 void 清空距离();
 
-void main()
+int main()
 {
-	
-
+	生成初始样本();
+	MakeSimpleData();
+	Display();
+	return 0;
 }
 
+void SetSimpleDataToWorld()
+{
+	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
+	{
+		World[样本[i].X][样本[i].Y] = 样本[i].Type;
+	}
+}
 void Display()
 {
 	for (int i = 0; i < _世界大小_X_; i++)
@@ -61,14 +77,49 @@ void Display()
 				std::cout << "x ";
 				break;
 			default:
-				std::cout << "  ";
+				std::cout << "- ";
 				break;
 			}
 		std::cout << std::endl;
 	}
 }
 
+uint 当前数据生成数 = 0;
+bool 是否重复(uint _X, uint _Y)
+{
+	for (uint i = 0; i < 当前数据生成数; i++)
+	{
+		if (样本[i].X == _X && 样本[i].Y == _Y)
+			return true;
+	}
+	return false;
+}
+uint 随机数生成(uint start, uint end)
+{
+	return (start + (end - start) * rand() / (RAND_MAX + 1.0));
+}
 void 生成初始样本()
 {
+	uint _t_X = 0, _t_Y = 0;
+	srand(unsigned(time(0)));
 
+	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
+	{
+		do
+		{
+			_t_X = 随机数生成(0, _世界大小_X_);
+			_t_Y = 随机数生成(0, _世界大小_Y_);
+		}
+		while (是否重复(_t_X, _t_Y));
+
+		样本[i].X = _t_X;
+		样本[i].Y = _t_Y;
+		if (i < _正例个数_)
+			样本[i].Type = 正例;
+		else
+			样本[i].Type = 负例;
+
+		当前数据生成数++;
+	}
+	当前数据生成数 = 0;//使命结束，所以归零。
 }
