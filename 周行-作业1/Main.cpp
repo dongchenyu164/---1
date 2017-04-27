@@ -1,98 +1,64 @@
-﻿#define _K参数_ 7
-#define _世界大小_X_ 20
-#define _世界大小_Y_ 20
-#define _正例个数_ 13
-#define _负例个数_ 25
+#define _K_ 1
+#define _WorldSize_X_ 20//宏定义推荐全部大写，以防止和普通变量发生冲突
+#define _WorldSize_Y_ 20
+#define _PSample_ 5
+#define _QSample_ 5
 
-#if _K参数_>(_正例个数_+_负例个数_)
-	#undef _K参数_
-	#define _K参数_ _正例个数_+_负例个数_
+#if _K_>(_PSample_+_QSample_)
+#undef _K_
+#define _K_ _PSample_+_QSample_
 #endif
-#if (_K参数_%2)==0
-	#error "K参数不能为偶数"
+#if (_K_%2)==0
+#error "K_Error"//请写出具体的错误：K is a odd number!
 #endif
-#if (_正例个数_+_负例个数_)>(_世界大小_X_*_世界大小_Y_)
-	#error "逗我？！"
+#if (_PSample_+_QSample_)>(_WorldSize_X_*_WorldSize_Y_)
+#error "Sample_Error"//请写出具体的错误：The number of samples are larger than World.
 #endif
 
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
 
-typedef struct 样本struct 样本struct;
-typedef unsigned int uint;
-
-enum 类型 { 空 = 0, 正例, 负例, 正判定, 负判定 };
-
-struct 样本struct
+enum type { empty = 0, PSample, QSample, P, Q };
+struct Samplestruct
 {
 	uint X;
 	uint Y;
-	类型 Type;
 	uint Distance;
+	type Type;
 };
 
-类型 World[_世界大小_X_][_世界大小_Y_];
-样本struct 样本[_正例个数_ + _负例个数_];
-int K = _K参数_;
+typedef unsigned int uint;
+typedef struct Samplestruct SPS; //定义跟重命名分开,只用大写首字母的命名方式的可读性很差，推荐：Sample
 
-void SetSimpleDataToWorld();
-void Display();
-bool 是否重复(uint _X, uint _Y);
-void 生成初始样本();
-void 计算距离(uint _X, uint _Y);
-void 以距离为基准排序();
-void 判断该点的类型(uint _X, uint _Y);
-void 清空距离();
-
-int main()
-{
-	生成初始样本();
-	SetSimpleDataToWorld();
-
-	for (int i = 0; i < _世界大小_X_; i++)
-	{
-		for (int j = 0; j < _世界大小_Y_; j++)
-			switch (World[i][j])
-			{
-			case 正例 :
-				break;
-			case 负例 :
-				break;
-			default:
-				判断该点的类型(i,j);
-				break;
-			}
-	}
-	
-	Display();
-	return 0;
-}
+type World[_WorldSize_X_][_WorldSize_Y_];
+SPS Sample[_PSample_ + _QSample_];
+int K = _K_;
 
 void SetSimpleDataToWorld()
 {
-	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
+	for (int i = 0; i < (_PSample_ + _QSample_); i++)
 	{
-		World[样本[i].X][样本[i].Y] = 样本[i].Type;
+		World[Sample[i].X][Sample[i].Y] = Sample[i].Type;
 	}
 }
 void Display()
 {
-	for (int i = 0; i < _世界大小_X_; i++)
+	for (int i = 0; i < _WorldSize_X_; i++)
 	{
-		for (int j = 0; j < _世界大小_Y_; j++)
+		for (int j = 0; j < _WorldSize_Y_; j++)
 			switch (World[i][j])
 			{
-			case 正例:
+			case PSample:
 				std::cout << "@ ";
 				break;
-			case 负例:
-				std::cout << "1 ";
+			case QSample:
+				std::cout << "X ";
 				break;
-			case 正判定:
+			case P:
 				std::cout << "o ";
 				break;
-			case 负判定:
+			case Q:
 				std::cout << "x ";
 				break;
 			default:
@@ -103,60 +69,61 @@ void Display()
 	}
 }
 
-uint 当前数据生成数 = 0;
-bool 是否重复(uint _X, uint _Y)
+//函数之间多敲一个回车。
+uint Space = 0;
+bool RepeatCheck(uint _X, uint _Y)//推荐命名：ValideCheck。因为此函数是检查新生成点的有效性。
 {
-	for (uint i = 0; i < 当前数据生成数; i++)
+	for (uint i = 0; i < Space; i++)
 	{
-		if (样本[i].X == _X && 样本[i].Y == _Y)
+		if (Sample[i].X == _X && Sample[i].Y == _Y)
 			return true;
 	}
 	return false;
 }
-uint 随机数生成(uint start, uint end)
+
+uint Roll(uint start, uint end)//推荐命名：GetRandomNum
 {
 	return (start + (end - start) * rand() / (RAND_MAX + 1.0));
 }
-void 生成初始样本()
+
+void BGSampleSample()//推荐命名：GetSamples
 {
 	uint _t_X = 0, _t_Y = 0;
 	srand(unsigned(time(0)));
 
-	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
+	for (int i = 0; i < (_PSample_ + _QSample_); i++)
 	{
 		do
 		{
-			_t_X = 随机数生成(0, _世界大小_X_);
-			_t_Y = 随机数生成(0, _世界大小_Y_);
-		}
-		while (是否重复(_t_X, _t_Y));
+			_t_X = Roll(0, _WorldSize_X_);
+			_t_Y = Roll(0, _WorldSize_Y_);
+		} while (RepeatCheck(_t_X, _t_Y));
 
-		样本[i].X = _t_X;
-		样本[i].Y = _t_Y;
-		if (i < _正例个数_)
-			样本[i].Type = 正例;
+		Sample[i].X = _t_X;
+		Sample[i].Y = _t_Y;
+		if (i < _PSample_)
+			Sample[i].Type = PSample;
 		else
-			样本[i].Type = 负例;
+			Sample[i].Type = QSample;
 
-		当前数据生成数++;
+		Space++;
 	}
-	当前数据生成数 = 0;//使命结束，所以归零。
+	Space = 0;//Mission completed
 }
-
-void 计算距离(uint _X, uint _Y)
+void Distance(uint _X, uint _Y)//推荐命名：CalAllDistance
 {
-	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
-		样本[i].Distance = (样本[i].X - _X)*(样本[i].X - _X) + (样本[i].Y - _Y)*(样本[i].Y - _Y);
+	for (int i = 0; i < (_PSample_ + _QSample_); i++)
+		Sample[i].Distance = (Sample[i].X - _X)*(Sample[i].X - _X) + (Sample[i].Y - _Y)*(Sample[i].Y - _Y);
 }
-void 清空距离()
+void Clear()//推荐命名：ClearAllDistance
 {
-	for (int i = 0; i < (_正例个数_ + _负例个数_); i++)
-		样本[i].Distance = 0;
+	for (int i = 0; i < (_PSample_ + _QSample_); i++)
+		Sample[i].Distance = 0;
 }
-void 交换两个样本(样本struct* _A, 样本struct* _B)
+void ExchangeSample(SPS* _A, SPS* _B)
 {
 	uint _TA = 0;
-	类型 _TB;
+	type _TB;
 	_TA = _A->X;
 	_A->X = _B->X;
 	_B->X = _TA;
@@ -173,31 +140,55 @@ void 交换两个样本(样本struct* _A, 样本struct* _B)
 	_A->Type = _B->Type;
 	_B->Type = _TB;
 }
-void 以距离为基准排序()
+void DistanceRank()//推荐命名：SortByDistance
 {
-	for (int i = 0; i < (_正例个数_ + _负例个数_)-1; i++)
+	for (int i = 0; i < (_PSample_ + _QSample_) - 1; i++)
 	{
-		for (int j = i+1; j < (_正例个数_ + _负例个数_); j++)
+		for (int j = i + 1; j < (_PSample_ + _QSample_); j++)
 		{
-			if (样本[i].Distance > 样本[j].Distance)
-				交换两个样本(&样本[i], &样本[j]);
+			if (Sample[i].Distance > Sample[j].Distance)
+				ExchangeSample(&Sample[i], &Sample[j]);
 		}
 	}
 }
-void 判断该点的类型(uint _X, uint _Y)
+void TypeJudge(uint _X, uint _Y)//推荐命名：CalPointType或者GetPointType
 {
-	int 正例计数 = 0, 负例计数 = 0;
-	计算距离(_X, _Y);
-	以距离为基准排序();
-	for (int i = 0; i < (_K参数_); i++)
+	int PSampleCount = 0, QSampleCount = 0;
+	Distance(_X, _Y);
+	DistanceRank();
+	for (int i = 0; i < (_K_); i++)
 	{
-		if (样本[i].Type == 正例)
-			正例计数++;
-		else if(样本[i].Type == 负例)
-			负例计数++;
+		if (Sample[i].Type == PSample)
+			PSampleCount++;
+		else if (Sample[i].Type == QSample)
+			QSampleCount++;
 	}
-	if (正例计数 > 负例计数)
-		World[_X][_Y] = 正判定;
+	if (PSampleCount > QSampleCount)
+		World[_X][_Y] = P;
 	else
-		World[_X][_Y] = 负判定;
+		World[_X][_Y] = Q;
+}
+
+int main()
+{
+	BGSampleSample();
+	SetSimpleDataToWorld();
+
+	for (int i = 0; i < _WorldSize_X_; i++)
+	{
+		for (int j = 0; j < _WorldSize_Y_; j++)
+			switch (World[i][j])
+			{
+			case PSample:
+				break;
+			case QSample:
+				break;
+			default:
+				TypeJudge(i, j);
+				break;
+			}
+	}
+
+	Display();
+	return 0;
 }
