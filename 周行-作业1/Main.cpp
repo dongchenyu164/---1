@@ -1,5 +1,5 @@
 #define _K_ 1
-#define _WorldSize_X_ 20
+#define _WorldSize_X_ 20//宏定义推荐全部大写，以防止和普通变量发生冲突
 #define _WorldSize_Y_ 20
 #define _PSample_ 5
 #define _QSample_ 5
@@ -9,10 +9,10 @@
 #define _K_ _PSample_+_QSample_
 #endif
 #if (_K_%2)==0
-#error "K_Error"
+#error "K_Error"//请写出具体的错误：K is a odd number!
 #endif
 #if (_PSample_+_QSample_)>(_WorldSize_X_*_WorldSize_Y_)
-#error "Sample_Error"
+#error "Sample_Error"//请写出具体的错误：The number of samples are larger than World.
 #endif
 
 #include <iostream>
@@ -20,15 +20,16 @@
 #include <cstdlib>
 
 enum type { empty = 0, PSample, QSample, P, Q };
-
-typedef unsigned int uint;
-typedef struct Samplestruct
+struct Samplestruct
 {
 	uint X;
 	uint Y;
 	uint Distance;
 	type Type;
-}SPS;
+};
+
+typedef unsigned int uint;
+typedef struct Samplestruct SPS; //定义跟重命名分开,只用大写首字母的命名方式的可读性很差，推荐：Sample
 
 type World[_WorldSize_X_][_WorldSize_Y_];
 SPS Sample[_PSample_ + _QSample_];
@@ -66,8 +67,11 @@ void Display()
 			}
 		std::cout << std::endl;
 	}
-}uint Space = 0;
-bool RepeatCheck(uint _X, uint _Y)
+}
+
+//函数之间多敲一个回车。
+uint Space = 0;
+bool RepeatCheck(uint _X, uint _Y)//推荐命名：ValideCheck。因为此函数是检查新生成点的有效性。
 {
 	for (uint i = 0; i < Space; i++)
 	{
@@ -76,11 +80,13 @@ bool RepeatCheck(uint _X, uint _Y)
 	}
 	return false;
 }
-uint Roll(uint start, uint end)
+
+uint Roll(uint start, uint end)//推荐命名：GetRandomNum
 {
 	return (start + (end - start) * rand() / (RAND_MAX + 1.0));
 }
-void BGSampleSample()
+
+void BGSampleSample()//推荐命名：GetSamples
 {
 	uint _t_X = 0, _t_Y = 0;
 	srand(unsigned(time(0)));
@@ -104,12 +110,12 @@ void BGSampleSample()
 	}
 	Space = 0;//Mission completed
 }
-void Distance(uint _X, uint _Y)
+void Distance(uint _X, uint _Y)//推荐命名：CalAllDistance
 {
 	for (int i = 0; i < (_PSample_ + _QSample_); i++)
 		Sample[i].Distance = (Sample[i].X - _X)*(Sample[i].X - _X) + (Sample[i].Y - _Y)*(Sample[i].Y - _Y);
 }
-void Clear()
+void Clear()//推荐命名：ClearAllDistance
 {
 	for (int i = 0; i < (_PSample_ + _QSample_); i++)
 		Sample[i].Distance = 0;
@@ -134,7 +140,7 @@ void ExchangeSample(SPS* _A, SPS* _B)
 	_A->Type = _B->Type;
 	_B->Type = _TB;
 }
-void DistanceRank()
+void DistanceRank()//推荐命名：SortByDistance
 {
 	for (int i = 0; i < (_PSample_ + _QSample_) - 1; i++)
 	{
@@ -145,7 +151,7 @@ void DistanceRank()
 		}
 	}
 }
-void TypeJudge(uint _X, uint _Y)
+void TypeJudge(uint _X, uint _Y)//推荐命名：CalPointType或者GetPointType
 {
 	int PSampleCount = 0, QSampleCount = 0;
 	Distance(_X, _Y);
